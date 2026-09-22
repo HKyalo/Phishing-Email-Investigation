@@ -94,7 +94,7 @@ The authentication results also indicate SPF and DKIM failures.
 
 The headers were analyzed using MXToolbox:
 
-![MXToolbox Header Analysis](images/header analysis.png)
+![MXToolbox Header Analysis](images/header%20analysis.png)
 
 ---
 
@@ -164,7 +164,7 @@ The embedded URL was submitted to VirusTotal for reputation analysis:
 
 `http://login-verify-portal-check.com/auth`
 
-![VirusTotal Analysis](images/virustotal-results.png)
+![VirusTotal Analysis](images/virustotal%20results.png)
 
 The analysis returned **0/90 detections**.
 
@@ -180,7 +180,7 @@ The VirusTotal result was therefore treated as an additional data point rather t
 
 The domain `login-verify-portal-check.com` was investigated using URLScan.io:
 
-![URLScan Analysis](images/urlscan-preview.png)
+![URLScan Analysis](images/urlscan%20preview.png)
 
 The analysis returned an **HTTP 400 error** and a **DNS resolution error**. The domain did not resolve to a valid IPv4 or IPv6 address at the time of analysis, and the webpage could not be loaded.
 
