@@ -2,45 +2,35 @@
 
 ## 1. Executive Summary
 
-This report documents a simulated investigation of a suspicious email claiming that a user's Microsoft 365 password would expire within two hours.
+This report documents the investigation of a suspicious password-expiration email reported by an employee at Enterprise Corp.
 
-The investigation examined the email headers, authentication results, sender information, embedded URL, and available open-source threat intelligence.
+The investigation focused on email header analysis, authentication checks, indicator extraction, and analysis of the URL embedded in the email.
 
-Several suspicious characteristics were identified, including failed SPF authentication, failed DKIM authentication, the absence of a DMARC record, a mismatch between the visible sender and Return-Path domains, an unfamiliar authentication URL, and an urgent password-expiration message.
+The investigation identified several suspicious characteristics, including failed SPF and DKIM authentication, the absence of a DMARC record, a mismatch between the visible sender and Return-Path domains, and an unfamiliar authentication URL.
 
-Based on the combined evidence, the email was classified as:
-
-**Suspicious / Suspected Phishing**
-
-The investigation did not independently confirm that the URL was malicious. VirusTotal returned 0/90 detections at the time of analysis, while URLScan was unable to resolve the domain.
-
-This investigation uses simulated training data and is intended for educational and portfolio purposes.
+Based on the available evidence, the email was classified as **Suspicious / Suspected Phishing**.
 
 ---
 
 ## 2. Project Scenario
 
-A simulated employee at **Enterprise Corp** received an email appearing to originate from an IT Support Desk.
+An employee at Enterprise Corp reported receiving an email claiming that their Microsoft 365 password would expire within two hours.
 
-The email claimed that the employee's corporate network password would expire within two hours and instructed the recipient to click an authentication link to keep the password active.
+The email instructed the recipient to click an embedded link to keep their password active.
 
-### Email Subject
+### Email Details
 
-`URGENT: Your Microsoft 365 Password Expires Today`
+**From:** `support@account-update-notice.com`
+**To:** `j.doe@enterprise-corp.com`
+**Subject:** `URGENT: Your Microsoft 365 Password Expires Today`
 
-### Targeted User
+### Email Body
 
-`j.doe@enterprise-corp.com`
+> Dear Valued Employee, your corporate network password is set to expire in 2 hours. Click the button below to keep your active password:
 
-### Visible Sender
-
-`support@account-update-notice.com`
-
-### Embedded URL
+**Embedded URL:**
 
 `http://login-verify-portal-check.com/auth`
-
-The purpose of the investigation was to determine whether the email displayed characteristics consistent with phishing activity.
 
 ---
 
@@ -48,24 +38,26 @@ The purpose of the investigation was to determine whether the email displayed ch
 
 The investigation aimed to:
 
-1. Analyze the email headers and message routing information.
-2. Evaluate SPF, DKIM, and DMARC authentication results.
-3. Identify potentially relevant indicators of compromise (IOCs).
-4. Investigate the embedded URL and domain using open-source intelligence.
-5. Assess the overall characteristics of the email.
-6. Develop appropriate incident response recommendations.
+* Analyze the raw email headers.
+* Review SPF, DKIM, and DMARC authentication results.
+* Identify potentially suspicious indicators of compromise.
+* Investigate the embedded URL and associated domain.
+* Use threat intelligence sources to assess the URL.
+* Determine an appropriate incident classification.
+* Formulate recommended containment and response actions.
 
 ---
 
 ## 4. Evidence Reviewed
 
-The following evidence was available for analysis:
+The investigation used the following evidence:
 
-* Raw email headers
-* Email body and embedded URL
-* MXToolbox Email Header Analyzer results
-* VirusTotal URL analysis
-* URLScan domain investigation
+* Raw email headers.
+* Email sender and Return-Path information.
+* SPF, DKIM, and DMARC authentication results.
+* Embedded URL.
+* VirusTotal URL reputation results.
+* URLScan.io domain and webpage analysis.
 
 ---
 
@@ -73,145 +65,94 @@ The following evidence was available for analysis:
 
 ## 5.1 Header Information
 
-The relevant headers were:
+The following raw email header information was analyzed:
 
 ```text
 Received: from mail-out.unauthorized-relay.net (mail-out.unauthorized-relay.net [192.0.2.45])
     by mx.enterprise-corp.com (Postfix) with ESMTPS id 4SyT8k2zZ1z
     for <j.doe@enterprise-corp.com>; Mon, 21 Sep 2026 09:14:22 +0000 (UTC)
-
 Authentication-Results: mx.enterprise-corp.com;
     spf=fail (sender IP 192.0.2.45 is not authorized) smtp.mailfrom=bounce@unauthorized-relay.net;
     dkim=fail header.d=account-update-notice.com;
-
 Return-Path: <bounce@unauthorized-relay.net>
-
 From: "IT Support Desk" <support@account-update-notice.com>
-
 To: "Jane Doe" <j.doe@enterprise-corp.com>
-
 Subject: URGENT: Your Microsoft 365 Password Expires Today
-
 Date: Mon, 21 Sep 2026 09:14:18 +0000
-
 Message-ID: <20260921091418.9812A4F@account-update-notice.com>
-
 MIME-Version: 1.0
-
 Content-Type: text/html; charset="UTF-8"
 ```
 
-The message was received by the simulated enterprise mail server from:
+The headers show that the message was received from `mail-out.unauthorized-relay.net` and that the sending IP address was `192.0.2.45`.
 
-`mail-out.unauthorized-relay.net`
+The visible `From` address uses the domain `account-update-notice.com`, while the Return-Path uses `unauthorized-relay.net`.
 
-The originating IP shown in the header was:
+The authentication results also indicate SPF and DKIM failures.
 
-`192.0.2.45`
+### Header Analysis Evidence
 
-This IP address belongs to a documentation/example IP range and is therefore treated as **synthetic training data**, rather than a real attacker IP address.
+The headers were analyzed using MXToolbox:
+
+![MXToolbox Header Analysis](images/header analysis.png)
 
 ---
 
 ## 5.2 SPF Analysis
 
-**SPF result: FAIL**
+**SPF (Sender Policy Framework)** is an email authentication mechanism used to verify whether a sending server or IP address is authorized to send email on behalf of a domain.
 
-The authentication results indicated:
+The email failed SPF authentication. The sending IP address `192.0.2.45` was not authorized for the relevant envelope sender domain.
 
-`spf=fail`
-
-The sending IP address was reported as not being authorized to send mail for the relevant envelope sender domain.
-
-The SMTP envelope sender was:
-
-`bounce@unauthorized-relay.net`
-
-### What this indicates
-
-Sender Policy Framework (SPF) is an email authentication mechanism used to identify which servers are authorized to send email on behalf of a domain.
-
-In this investigation, the sending server failed the SPF check.
-
-This is a significant anomaly because legitimate email infrastructure should normally be authorized by the relevant domain's SPF policy.
-
-However, SPF failure alone does not prove that an email is phishing. It must be considered together with other evidence.
+This is a suspicious characteristic because the sending infrastructure did not pass the domain's SPF authentication check.
 
 ---
 
 ## 5.3 DKIM Analysis
 
-**DKIM result: FAIL**
+**DKIM (DomainKeys Identified Mail)** uses a cryptographic signature to allow a receiving mail server to verify that a message was authorized by the signing domain and that relevant parts of the message were not modified.
 
-The authentication results indicated:
+The email failed DKIM authentication.
 
-`dkim=fail`
+The analysis also indicated that no valid DKIM-Signature header was present. MXToolbox reported a DKIM signature error and indicated that an aligned DKIM signature was required for the message to be considered aligned.
 
-The analysis also reported that no valid `DKIM-Signature` header was present.
-
-### What this indicates
-
-DomainKeys Identified Mail (DKIM) uses a cryptographic signature to allow receiving mail systems to verify that a message was signed by an authorized domain and that relevant message content has not been altered.
-
-In this case, the message did not provide a valid DKIM signature.
-
-This represents another authentication anomaly.
+This provided another authentication failure associated with the email.
 
 ---
 
 ## 5.4 DMARC Analysis
 
-**DMARC result: No DMARC record found**
+**DMARC (Domain-based Message Authentication, Reporting & Conformance)** builds on SPF and DKIM and uses domain alignment to help receiving mail systems determine how messages that fail authentication should be handled.
 
-The MXToolbox analysis reported:
+No DMARC record was found for `account-update-notice.com`.
 
-* DMARC Compliant: No DMARC Record Found
-* SPF Alignment: Problem
-* SPF Authenticated: Problem
-* DKIM Alignment: Problem
-* DKIM Authenticated: Problem
+The analysis also identified problems with:
 
-### What this indicates
+* DMARC compliance.
+* SPF alignment.
+* SPF authentication.
+* DKIM alignment.
+* DKIM authentication.
 
-Domain-based Message Authentication, Reporting & Conformance (DMARC) builds on SPF and DKIM and checks whether the authenticated domain is appropriately aligned with the domain visible in the `From` address.
-
-The analysis found no DMARC record for:
-
-`account-update-notice.com`
-
-This means the domain did not provide a DMARC policy that could be evaluated for the message.
-
-The lack of a DMARC record does not by itself prove that the message is malicious. However, in combination with the failed SPF and DKIM results, it contributes to the overall suspicious nature of the message.
+The absence of a DMARC record meant that there was no published DMARC policy for the investigated domain.
 
 ---
 
 # 6. IOC Extraction
 
-The following indicators were extracted from the email:
+The following indicators were identified during the investigation:
 
 | IOC Type      | Indicator                                   | Observation                                 |
 | ------------- | ------------------------------------------- | ------------------------------------------- |
-| From address  | `support@account-update-notice.com`         | Visible sender                              |
+| From Address  | `support@account-update-notice.com`         | Visible sender                              |
 | Return-Path   | `bounce@unauthorized-relay.net`             | Different envelope-sender domain            |
-| Mail relay    | `mail-out.unauthorized-relay.net`           | Sending relay identified in Received header |
-| IP address    | `192.0.2.45`                                | Synthetic documentation/example IP          |
+| Mail Relay    | `mail-out.unauthorized-relay.net`           | Sending relay identified in Received header |
+| IP Address    | `192.0.2.45`                                | Originating relay IP                        |
 | Phishing URL  | `http://login-verify-portal-check.com/auth` | Embedded authentication link                |
-| Target domain | `login-verify-portal-check.com`             | Domain used by the embedded URL             |
-| URL path      | `/auth`                                     | Authentication-related path                 |
+| Target Domain | `login-verify-portal-check.com`             | Domain used by embedded URL                 |
+| URL Path      | `/auth`                                     | Authentication-related URL path             |
 
-### From vs Return-Path
-
-The visible `From` address was:
-
-`support@account-update-notice.com`
-
-The Return-Path was:
-
-`bounce@unauthorized-relay.net`
-
-A difference between these addresses can occur legitimately when organizations use third-party email delivery services.
-
-However, in this investigation the difference is notable because it occurs alongside SPF failure, DKIM failure, the absence of a DMARC record, and other suspicious characteristics.
+**Note:** The IP address `192.0.2.45` is within a documentation/example address range and is therefore treated as synthetic training data rather than a real attacker infrastructure indicator.
 
 ---
 
@@ -219,57 +160,33 @@ However, in this investigation the difference is notable because it occurs along
 
 ## 7.1 VirusTotal Analysis
 
-The embedded URL was submitted to VirusTotal:
+The embedded URL was submitted to VirusTotal for reputation analysis:
 
 `http://login-verify-portal-check.com/auth`
 
-### Result
+![VirusTotal Analysis](images/virustotal-results.png)
 
-**0 / 90 security vendors flagged the URL at the time of analysis.**
+The analysis returned **0/90 detections**.
 
-Analysis date:
+The URL was not flagged as malicious by the security vendors included in the VirusTotal analysis at the time of investigation.
 
-`2026-09-22 13:27:27 UTC`
+However, an unflagged result does **not** establish that a URL is safe. Newly created, inactive, unavailable, or previously unseen infrastructure may not yet have reputation data or detections.
 
-The available report did not show the URL as being identified as malicious by the listed security vendors.
-
-### Interpretation
-
-A 0/90 result should **not** be interpreted as proof that the URL is safe.
-
-Threat intelligence databases may not contain newly created, inactive, synthetic, or previously unseen domains.
-
-Therefore, the result is recorded as:
-
-**Threat intelligence did not independently identify the URL as malicious at the time of analysis.**
+The VirusTotal result was therefore treated as an additional data point rather than definitive evidence that the URL was legitimate.
 
 ---
 
 ## 7.2 URLScan Analysis
 
-The domain was investigated using URLScan:
+The domain `login-verify-portal-check.com` was investigated using URLScan.io:
 
-`login-verify-portal-check.com`
+![URLScan Analysis](images/urlscan-preview.png)
 
-The result was:
+The analysis returned an **HTTP 400 error** and a **DNS resolution error**. The domain did not resolve to a valid IPv4 or IPv6 address at the time of analysis, and the webpage could not be loaded.
 
-**HTTP 400 Error**
+The inability to resolve the domain prevented further webpage and network analysis.
 
-with the following resolution result:
-
-**DNS Error — Could not resolve domain**
-
-URLScan reported that the domain could not be resolved to a valid IPv4 or IPv6 address and therefore could not be loaded.
-
-### Interpretation
-
-At the time of investigation, the domain did not resolve through the DNS infrastructure available to URLScan.
-
-This means the domain could not be actively examined through the browser-based scan.
-
-The result is consistent with the domain being inactive, nonexistent, synthetic, or otherwise unavailable at the time of investigation.
-
-It does not independently establish that the domain was malicious.
+This result does not by itself prove that the domain was malicious. In this investigation, it is consistent with the domain being unavailable or synthetic training data.
 
 ---
 
@@ -277,31 +194,25 @@ It does not independently establish that the domain was malicious.
 
 ## Finding 1: Urgency and Social Engineering
 
-The email used an urgent password-expiration message:
+The email claimed that the recipient's corporate password would expire within two hours.
 
-> "Your Microsoft 365 Password Expires Today"
+This creates urgency and encourages the recipient to act quickly rather than independently verifying the request.
 
-The body stated that the password would expire within two hours and instructed the recipient to click a link to maintain access.
-
-This creates pressure for the recipient to act quickly without independently verifying the request.
-
-The use of urgency and fear of account loss is consistent with common phishing and social-engineering techniques.
+The use of an urgent password-expiration message is consistent with a common phishing technique in which attackers attempt to create pressure around account access.
 
 ---
 
 ## Finding 2: Failed Email Authentication
 
-The message failed both SPF and DKIM authentication.
+The message failed multiple email authentication checks:
 
-### Authentication results
+* SPF: Failed.
+* DKIM: Failed.
+* DMARC: No record found.
+* SPF alignment: Problem.
+* DKIM alignment: Problem.
 
-| Authentication Mechanism | Result          |
-| ------------------------ | --------------- |
-| SPF                      | Fail            |
-| DKIM                     | Fail            |
-| DMARC                    | No record found |
-
-These authentication anomalies reduce confidence that the message originated from an authorized mail system associated with the visible sender domain.
+The combination of these results increased the level of suspicion surrounding the message.
 
 ---
 
@@ -311,13 +222,15 @@ The visible sender was:
 
 `support@account-update-notice.com`
 
-while the Return-Path was:
+The Return-Path was:
 
 `bounce@unauthorized-relay.net`
 
-The domains therefore differed.
+Different domains between the visible From address and Return-Path can occur legitimately, particularly when organizations use third-party email delivery services.
 
-Although sender and Return-Path differences can occur legitimately, the mismatch is noteworthy in this case because it appears together with failed authentication checks.
+However, in this case, the domain difference occurred alongside failed SPF and DKIM authentication and other suspicious characteristics.
+
+It was therefore treated as an anomaly requiring further investigation.
 
 ---
 
@@ -327,46 +240,43 @@ The email directed the recipient to:
 
 `http://login-verify-portal-check.com/auth`
 
-The URL uses a domain that is unrelated to the visible recipient organization and presents itself as an authentication destination.
+The domain was unfamiliar and used an authentication-related path.
 
-The use of an unfamiliar authentication domain in an urgent password-expiration message is a significant phishing indicator.
+The URL also did not correspond to the organization's known Microsoft 365 authentication infrastructure.
+
+Combined with the urgent password-expiration message, the URL represented a significant phishing indicator.
 
 ---
 
 ## Finding 5: Threat Intelligence Did Not Confirm Malicious Activity
 
-VirusTotal returned:
+VirusTotal returned **0/90 detections**.
 
-**0/90 detections**
+URLScan.io returned an **HTTP 400 error and DNS resolution error**.
 
-URLScan was unable to resolve the domain.
+The available threat intelligence therefore did not independently identify the URL as malicious at the time of analysis.
 
-These results did not independently confirm that the URL was malicious.
-
-However, the absence of a detection does not eliminate the possibility of phishing, particularly where a domain may be inactive, newly created, unavailable, or part of simulated training data.
+However, the absence of detections should not be interpreted as proof that the URL was safe.
 
 ---
 
 # 9. Incident Classification
 
-### Classification
+Based on the available evidence, the simulated email was classified as:
 
-**Suspicious / Suspected Phishing**
+## **Suspicious / Suspected Phishing**
 
-### Rationale
+The classification was based on the combination of:
 
-The classification is based on the combination of:
+* Urgent password-expiration messaging.
+* Failed SPF authentication.
+* Failed DKIM authentication.
+* Missing DMARC record.
+* Sender and Return-Path domain mismatch.
+* Suspicious authentication URL.
+* Unresolved URL domain.
 
-* Urgent password-expiration messaging
-* Social-engineering characteristics
-* SPF authentication failure
-* DKIM authentication failure
-* No DMARC record found
-* Difference between visible sender and Return-Path domains
-* Unfamiliar authentication URL
-* DNS failure during URLScan investigation
-
-The available evidence does not establish that the URL was definitively malicious or that an account was compromised.
+The evidence did not establish that the URL successfully delivered malware or that credentials were actually compromised.
 
 ---
 
@@ -374,126 +284,68 @@ The available evidence does not establish that the URL was definitively maliciou
 
 Based on this simulated investigation, the following actions would be recommended in an enterprise environment.
 
-## 10.1 Quarantine the Message
+### 1. Quarantine the Email
 
-Quarantine the suspicious email to prevent further interaction with the embedded link.
+Remove or quarantine the suspicious email from the targeted user's mailbox and prevent further interaction with the embedded URL.
 
----
+### 2. Search for Related Messages
 
-## 10.2 Search for Related Messages
+Search the email environment for:
 
-Search the organization's email environment for:
+* The sender address.
+* The sender domain.
+* The Return-Path domain.
+* The embedded URL.
+* The URL domain.
+* Related subject lines or message identifiers.
 
-* `account-update-notice.com`
-* `unauthorized-relay.net`
-* `login-verify-portal-check.com`
-* `support@account-update-notice.com`
-* `bounce@unauthorized-relay.net`
+This can help determine whether other users received the same message.
 
-This can help determine whether other users received the same or similar message.
+### 3. Determine Whether the User Clicked the Link
 
----
+Review available browser, proxy, DNS, firewall, or endpoint telemetry to determine whether the targeted user accessed the URL.
 
-## 10.3 Determine Whether the User Interacted
+### 4. Investigate Potential Credential Exposure
 
-Establish whether the targeted user:
+If the user clicked the link and entered credentials, the organization should consider:
 
-* Opened the email
-* Clicked the embedded URL
-* Submitted credentials
-* Downloaded any files
-* Experienced unexpected authentication activity
+* Resetting the affected password.
+* Reviewing authentication activity.
+* Revoking active sessions where appropriate.
+* Investigating suspicious sign-in activity.
+* Escalating the incident if evidence of account compromise is identified.
 
----
+### 5. Block Confirmed Malicious Indicators
 
-## 10.4 Review Security Logs
+If further investigation confirms that the domain or URL is malicious, appropriate security controls can be updated to block the identified indicators.
 
-If the user interacted with the link, relevant authentication, browser, network, and endpoint logs should be reviewed for suspicious activity.
+### 6. User Awareness
 
-Particular attention should be given to:
-
-* Unexpected authentication attempts
-* New login locations or devices
-* Multiple failed login attempts
-* Successful logins following credential submission
-* Suspicious browser or endpoint activity
-
----
-
-## 10.5 Protect the Account if Credentials Were Submitted
-
-If the user entered credentials into the suspicious website, appropriate account-protection measures should be taken.
-
-These may include:
-
-* Resetting the affected password
-* Reviewing recent authentication activity
-* Revoking active sessions where appropriate
-* Reviewing MFA activity
-* Escalating the incident if evidence of account compromise is identified
-
----
-
-## 10.6 Validate Indicators Before Blocking
-
-The identified domains and URL should be validated before being added to enterprise blocklists.
-
-If subsequent investigation confirms malicious activity, the relevant indicators can be blocked through appropriate email, DNS, web-filtering, or security controls.
-
----
-
-## 10.7 User Awareness
-
-Users should be reminded to access Microsoft 365 and other corporate services through known and trusted portals rather than authentication links received unexpectedly through email.
+Users should be encouraged to access corporate services through known bookmarks or official portals rather than following unexpected authentication links received by email.
 
 ---
 
 # 11. Investigation Limitations
 
-This investigation has several limitations.
+Several limitations should be considered when interpreting the results.
 
-### Simulated Data
+* The investigation was performed using simulated email and domain data.
+* The IP address `192.0.2.45` is from a documentation/example address range.
+* The investigated URL could not be resolved during the URLScan analysis.
+* VirusTotal did not identify the URL as malicious at the time of analysis.
+* No endpoint, proxy, DNS, firewall, or authentication logs were available to determine whether the recipient interacted with the URL.
+* No evidence was available to confirm actual credential compromise or malware execution.
 
-The investigation uses fictional training data rather than a real enterprise email environment.
-
-Enterprise Corp and the users, domains, and email addresses in the scenario are fictional.
-
-### Synthetic IP Address
-
-The IP address:
-
-`192.0.2.45`
-
-belongs to a documentation/example IP range and should not be interpreted as a real attacker infrastructure address.
-
-### Limited Telemetry
-
-No endpoint, firewall, DNS, proxy, authentication, or SIEM logs were available.
-
-As a result, the investigation could not determine whether a user actually clicked the URL or whether credentials were submitted.
-
-### Threat Intelligence Limitations
-
-VirusTotal did not report a detection at the time of analysis, and URLScan could not resolve the domain.
-
-Threat intelligence results can change over time and should not be treated as definitive proof that an indicator is safe or malicious.
+These limitations mean that the investigation can establish suspicious characteristics but cannot independently confirm a successful phishing compromise.
 
 ---
 
 # 12. Conclusion
 
-The simulated email demonstrated several characteristics associated with phishing, including urgency, a suspicious authentication request, failed SPF and DKIM authentication, absence of a DMARC record, a sender-domain anomaly, and an unfamiliar login URL.
+The investigated email demonstrated multiple characteristics associated with a potential phishing attempt, including urgency-based messaging, failed email authentication, sender-domain anomalies, and a suspicious authentication URL.
 
-Open-source threat intelligence did not independently confirm the URL as malicious during the investigation. VirusTotal returned 0/90 detections, while URLScan was unable to resolve the domain.
+Although the available threat intelligence did not identify the URL as malicious and the domain could not be resolved during analysis, these results do not establish that the email was legitimate.
 
-Considering the available evidence as a whole, the email was classified as:
+Based on the combined evidence, the email was classified as **Suspicious / Suspected Phishing**.
 
-**Suspicious / Suspected Phishing**
-
-In a real enterprise environment, the next investigative priority would be determining whether the targeted user interacted with the email and, if so, reviewing authentication, endpoint, network, and email telemetry for evidence of compromise.
-
----
-
-## Disclaimer
-
-This project is a simulated cybersecurity investigation created for educational and portfolio purposes. It does not represent a real security incident or investigation of a real organization.
+The investigation demonstrates a practical workflow for analyzing suspicious email messages using header analysis, authentication results, IOC extraction, and external threat intelligence.
