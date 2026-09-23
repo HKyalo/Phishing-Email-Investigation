@@ -27,6 +27,6 @@ Investigate a reported password-expiration email targeting an employee at Enterp
 
 ## 📖 Full Incident Report
 
-[View the complete Incident Response Report →](incident report.md)
+[View the complete Incident Response Report →](INCIDENTREPORT.md)
 
 > **Note:** This is a simulated cybersecurity investigation created. Enterprise Corp and the indicators used in the scenario are fictional/training data.
