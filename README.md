@@ -16,14 +16,14 @@ Investigate a reported password-expiration email targeting an employee at Enterp
 
 | Check / Artifact         | Finding / Result                    | Status               |
 | ------------------------ | ----------------------------------- | -------------------- |
-| Header Sender            | `support@account-update-notice.com` | ⚠️ Suspicious Domain |
-| Return-Path              | `bounce@unauthorized-relay.net`     | ⚠️ Domain Mismatch   |
-| SPF                      | `spf=fail`                          | ❌ Failed             |
-| DKIM                     | `dkim=fail`                         | ❌ Failed             |
-| DMARC                    | No record found                     | ⚠️ Missing Policy    |
-| VirusTotal               | 0/90 detections                     | ℹ️ Unflagged         |
-| URLScan.io               | HTTP 400 / DNS Resolution Error     | ⚠️ Unresolvable      |
-| **Final Classification** | **Suspicious / Suspected Phishing** | 🚨                   |
+| Header Sender            | `support@account-update-notice.com` | Suspicious Domain |
+| Return-Path              | `bounce@unauthorized-relay.net`     | Domain Mismatch   |
+| SPF                      | `spf=fail`                          | Failed             |
+| DKIM                     | `dkim=fail`                         | Failed             |
+| DMARC                    | No record found                     | Missing Policy    |
+| VirusTotal               | 0/90 detections                     | Unflagged         |
+| URLScan.io               | HTTP 400 / DNS Resolution Error     | Unresolvable      |
+| **Final Classification** | **Suspicious / Suspected Phishing** |                   |
 
 ## 📖 Full Incident Report
 
